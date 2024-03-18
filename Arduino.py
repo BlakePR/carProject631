@@ -1,5 +1,5 @@
 # CarControl.py
-'''
+"""
 ******* Controlling The Car Through Arduino **********
     By DJ Lee on February 5, 2022
 
@@ -21,10 +21,11 @@
 	and don't go beyond that speed. These cars can go very fast, and there is expensive hardware
 	on them, so don't risk losing control of the car and breaking anything.
 **************************************
-'''
+"""
 
 import serial
 import time
+
 
 class Arduino:
     def __init__(self, Port, Baud):
@@ -41,31 +42,31 @@ class Arduino:
     def __del__(self):
         self.SerialPort.close()
 
-    def steer(self, degree):   # control car steering -30.0 ~ 30.0 degrees
+    def steer(self, degree):  # control car steering -30.0 ~ 30.0 degrees
         command = "steer" + str(degree) + "\n"
         self.SerialPort.write(command.encode())
 
-    def drive(self, speed):       # control car speed -3.0 ~ 3.0 meters per secone
+    def drive(self, speed):  # control car speed -3.0 ~ 3.0 meters per secone
         command = "drive" + str(speed) + "\n"
         self.SerialPort.write(command.encode())
 
-    def zero(self, pwm):          # set PWM value when the car goes straight (0 degree)
+    def zero(self, pwm):  # set PWM value when the car goes straight (0 degree)
         command = "zero" + str(pwm) + "\n"
         self.SerialPort.write(command.encode())
 
-    def encoder(self):         # read encoder count back from Arduino
+    def encoder(self):  # read encoder count back from Arduino
         command = "encoder" + "\n"
         self.SerialPort.writeexcept(command.encode())
-        return(self.SerialPort.readline())
+        return self.SerialPort.readline()
 
-    def pid(self, flag):         # read encoder count back from Arduino
+    def pid(self, flag):  # read encoder count back from Arduino
         command = "pidtry:" + str(flag) + "\n"
         self.SerialPort.write(command.encode())
 
-    def kp(self, p):         # read encoder count back from Arduino
+    def kp(self, p):  # read encoder count back from Arduino
         command = "kp" + str(p) + "\n"
         self.SerialPort.write(command.encode())
 
-    def kd(self, d):         # read encoder count back from Arduino
+    def kd(self, d):  # read encoder count back from Arduino
         command = "kd" + str(d) + "\n"
         self.SerialPort.write(command.encode())

@@ -1,6 +1,6 @@
 # $ python3 CarTest.py
 
-'''
+"""
 ******* Controlling The Car **********
     By DJ Lee on February 5, 2022
 
@@ -22,33 +22,31 @@
 	and don't go beyond that speed. These cars can go very fast, and there is expensive hardware
 	on them, so don't risk losing control of the car and breaking anything.
 **************************************
-'''
+"""
 
 from Arduino import Arduino
 
 # Use $ ls /dev/tty* to find the serial port connected to Arduino
-Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
-#Car = Arduino("/dev/tty.usbserial-2140", 115200)     # Mac
+Car = Arduino("/dev/ttyUSB0", 115200)  # Linux
+# Car = Arduino("/dev/tty.usbserial-2140", 115200)     # Mac
 
 while True:
     command = input("Enter a command:\n")
-    if command == 's':
+    if command == "s":
         angle = input("Enter a steering angle (-30 ~ 30):\n")
         Car.steer(float(angle))
-    elif command == 'd':
+    elif command == "d":
         speed = input("Enter a drive speed (-3.0 ~ 3.0):\n")
         Car.drive(float(speed))
-    elif command == 'z':
+    elif command == "z":
         pwm = input("Enter a PWM value (~1500):\n")
         Car.zero(int(pwm))
-    elif command == 'p':
+    elif command == "p":
         flag = input("Enter 1 to turn on PID and 0 to turn off:\n")
         Car.pid(int(flag))
-    elif command == 'e':
-        print(int(Car.encoder().strip()))   # need to strip character of \r or \n
-    elif command == 'q':
+    elif command == "e":
+        print(int(Car.encoder().strip()))  # need to strip character of \r or \n
+    elif command == "q":
         if Car.CarConnected:
             del Car
         break
-
-
