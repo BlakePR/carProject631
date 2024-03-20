@@ -44,3 +44,18 @@ grid_big = cv.resize(
 grid_big *= 250
 cv.imshow("Grid", grid_big)
 cv.waitKey(0)
+
+
+def grid2midpoints(grid):
+    midpoints = []
+    for i in range(grid.shape[0]):  # rows
+        jl = grid.shape[1] // 2 - 1
+        jr = grid.shape[1] // 2
+        while jl >= 0 and grid[i, jl] == 0:
+            jl -= 1
+        while jr < grid.shape[1] and grid[i, jr] == 0:
+            jr += 1
+        templ = float(jl)
+        tempr = float(jr)
+        midpoints.append((i, (templ + tempr) / 2))
+    return midpoints
