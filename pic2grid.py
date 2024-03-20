@@ -16,6 +16,10 @@ def crop_down(image, crop_height):
     return image[crop_height:, :, :]
 
 
+def crop_up(image, crop_height):
+    return image[:crop_height, :, :]
+
+
 # cropped = crop_down(img, 120)
 # cv.imshow("Cropped Image", cropped)
 # cv.waitKey(0)
@@ -50,7 +54,7 @@ def make_grid(image, n_rows, n_cols, p_occup):
 # cv.waitKey(0)
 
 
-def grid2midpoints(grid):
+def grid2midpoints(grid, scalex, scaley):
     midpoints = []
     for i in range(grid.shape[0]):  # rows
         jl = grid.shape[1] // 2 - 1
@@ -63,7 +67,9 @@ def grid2midpoints(grid):
             jr += 1
         templ = float(jl)
         tempr = float(jr)
-        midpoints.append((i, (templ + tempr) / 2))
+        y = i * scaley
+        x = (templ + tempr) / 2 * scalex
+        midpoints.append((y, x))
     return midpoints
 
 
@@ -72,7 +78,7 @@ def grid2midpoints(grid):
 #     cv.circle(
 #         grid_big,
 #         (
-#             int(midpoints[i][1] * (grid_big.shape[1] // 10)),
+#            #this is bad now int(midpoints[i][1] * (grid_big.shape[1] // 10)),
 #             int(midpoints[i][0] * (grid_big.shape[0] // 10)),
 #         ),
 #         5,
