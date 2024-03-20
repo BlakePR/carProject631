@@ -16,4 +16,4 @@ def find_ave_angle(midpoints):
         angles.append(angle * (dist - i))
 
     sum = np.sum(angles)
-    return np.rad2deg(sum / 15.0)
+    return np.rad2deg(sum / 21.0)
