@@ -27,6 +27,9 @@ import numpy as np
 import imutils
 import cv2
 
+from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
+from pathplanner import find_ave_angle
+
 rs = RealSense("/dev/video2", RS_VGA)  # RS_VGA, RS_720P, or RS_1080P
 writer = None
 
@@ -47,10 +50,23 @@ while True:
     """
     Add your code to process rgb, depth, IMU data
     """
-
+    crop = crop_down(rgb, 120)
+    crop = crop_up(crop, 30)
+    grid = make_grid(crop, 10, 10, 0.33)
+    scalex = crop.shape[1] // 10
+    scaley = crop.shape[0] // 10
+    midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
+    angle = find_ave_angle(midpoints)
     """
     Control the Car
     """
+    count = 0
+    Car.steer(angle)
+    if count < 40:
+        Car.drive(1.6)
+        count += 1
+    else:
+        Car.drive(0.5)
 
     """
    	IMPORTANT: Never go full speed. Use CarTest.py to selest the best speed for you.

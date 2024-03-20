@@ -6,13 +6,14 @@ import numpy as np
 
 def find_ave_angle(midpoints):
     angles = []
-    for i in range(5):
+    dist = 6
+    for i in range(dist):
         curr_pt = midpoints[-1 - i]
         next_pt = midpoints[-2 - i]
         dely = next_pt[0] - curr_pt[0]
         delx = next_pt[1] - curr_pt[1]
         angle = np.arctan2(delx, -dely)
-        angles.append(angle * (5 - i))
+        angles.append(angle * (dist - i))
 
     sum = np.sum(angles)
     return np.rad2deg(sum / 15.0)
