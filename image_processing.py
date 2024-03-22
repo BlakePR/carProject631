@@ -16,25 +16,32 @@ def get_wall_HS_mask(rgbimg):
     RGB_channel_1 = cv.extractChannel(rgbimg, 1)
     RGB_channel_0 = cv.extractChannel(rgbimg, 0)
 
+    cv.imshow("hue",hue)
+    cv.imshow("saturation",saturation)
+    cv.imshow("intensity",intensity)
+    cv.imshow("red",RGB_channel_2)
+    cv.imshow("green",RGB_channel_1)
+    cv.imshow("red",RGB_channel_0)
+
     #Right wall (bright wall)
-    RGB_thresh_2 = cv.threshold(RGB_channel_2, 150, 255, cv.THRESH_BINARY)[1]
-    RGB_thresh_2_inv = cv.threshold(RGB_channel_2, 190, 255, cv.THRESH_BINARY_INV)[1]
-    RGB_thresh_tot_2 = cv.bitwise_and(RGB_thresh_2, RGB_thresh_2_inv)
-    RGB_thresh_1 = cv.threshold(RGB_channel_1, 120, 255, cv.THRESH_BINARY)[1]
-    RGB_thresh_1_inv = cv.threshold(RGB_channel_1, 180, 255, cv.THRESH_BINARY_INV)[1]
-    RGB_thresh_tot_1 = cv.bitwise_and(RGB_thresh_1, RGB_thresh_1_inv)
-    color_coordinate_bright = cv.bitwise_and(RGB_thresh_tot_2, RGB_thresh_tot_1)
+    # RGB_thresh_2 = cv.threshold(RGB_channel_2, 150, 255, cv.THRESH_BINARY)[1]
+    # RGB_thresh_2_inv = cv.threshold(RGB_channel_2, 190, 255, cv.THRESH_BINARY_INV)[1]
+    # RGB_thresh_tot_2 = cv.bitwise_and(RGB_thresh_2, RGB_thresh_2_inv)
+    # RGB_thresh_1 = cv.threshold(RGB_channel_1, 120, 255, cv.THRESH_BINARY)[1]
+    # RGB_thresh_1_inv = cv.threshold(RGB_channel_1, 180, 255, cv.THRESH_BINARY_INV)[1]
+    # RGB_thresh_tot_1 = cv.bitwise_and(RGB_thresh_1, RGB_thresh_1_inv)
+    # color_coordinate_bright = cv.bitwise_and(RGB_thresh_tot_2, RGB_thresh_tot_1)
 
     #Dark wall
-    RGB_thresh_2 = cv.threshold(RGB_channel_2, 110, 255, cv.THRESH_BINARY)[1]
-    RGB_thresh_2_inv = cv.threshold(RGB_channel_2, 140, 255, cv.THRESH_BINARY_INV)[1]
+    RGB_thresh_2 = cv.threshold(RGB_channel_2, 120, 255, cv.THRESH_BINARY)[1]
+    RGB_thresh_2_inv = cv.threshold(RGB_channel_2, 255, 255, cv.THRESH_BINARY_INV)[1]
     RGB_thresh_tot_2 = cv.bitwise_and(RGB_thresh_2, RGB_thresh_2_inv)
-    RGB_thresh_1 = cv.threshold(RGB_channel_1, 70, 255, cv.THRESH_BINARY)[1]
-    RGB_thresh_1_inv = cv.threshold(RGB_channel_1, 100, 255, cv.THRESH_BINARY_INV)[1]
+    RGB_thresh_1 = cv.threshold(RGB_channel_1, 50, 255, cv.THRESH_BINARY)[1]
+    RGB_thresh_1_inv = cv.threshold(RGB_channel_1, 130, 255, cv.THRESH_BINARY_INV)[1]
     RGB_thresh_tot_1 = cv.bitwise_and(RGB_thresh_1, RGB_thresh_1_inv)
-    color_coordinate_dark = cv.bitwise_and(RGB_thresh_tot_2, RGB_thresh_tot_1)
+    color_coordinate = cv.bitwise_and(RGB_thresh_tot_2, RGB_thresh_tot_1)
 
-    color_coordinate = cv.bitwise_or(color_coordinate_bright, color_coordinate_dark)
+    # color_coordinate = cv.bitwise_or(color_coordinate_bright, color_coordinate_dark)
 
 
     hue_mask_for_walls_high = cv.threshold(hue, 100, 255, cv.THRESH_BINARY)[1]
@@ -68,7 +75,8 @@ def get_wall_HS_mask(rgbimg):
     final_pic = cv.bitwise_and(final_pic, cv.threshold(RGB_channel_0, 200, 255, cv.THRESH_BINARY_INV)[1])
 
     final_pic = cv.erode(final_pic, None, iterations=5)
-    final_pic = cv.dilate(final_pic, None, iterations=10)
+    final_pic = cv.dilate(final_pic, None, iterations=8)
+
     # cv.imshow("color_coordinate",color_coordinate)
     # cv.imshow("hsv_mask",hsv_mask)
     # cv.imshow("and_pic",and_pic)
@@ -91,7 +99,7 @@ def get_noodle_not_red(bgrimg):
 def get_obstacle(rgbimg):
     wall_mask = get_wall_HS_mask(rgbimg)
     middle = np.zeros_like(wall_mask)
-    middle[:, 3*middle.shape[1]//8:5*middle.shape[1]//8] = 1
+    middle[:, middle.shape[1]//3:2*middle.shape[1]//3] = 255
     middle = cv.bitwise_not(middle)
     wall_mask = cv.bitwise_and(wall_mask, middle)
     noodle_mask = get_noodle_not_red(rgbimg)
