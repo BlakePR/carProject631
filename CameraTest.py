@@ -36,14 +36,14 @@ while True:
             True,
         )
 
-    cv2.imshow("RGB", rgb)
-    cv2.imshow("Depth", depth)
 
     if recording == True:
         # write the output frame to disk
         writer.write(rgb)
 
-    key = cv2.waitKey(1) & 0xFF
+    # key = cv2.waitKey(1) & 0xFF
+    key = input("press input")
+    key = ord(key[0])
     if key == ord("r"):  # Start Recording
         recording = True
     if key == ord("s"):  # Stop Recording

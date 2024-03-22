@@ -18,13 +18,15 @@ def test_find_ave_angle(image):
     cv.imshow("grid", grid*250)
     midpoints = grid2midpoints(grid, cropped.shape[1] // 10, cropped.shape[0] // 10)
     angle = find_ave_angle(midpoints)
+    for midpoint in midpoints:
+        cv.circle(frame,(int(midpoint[1]), int(midpoint[0]) + 120),5, (255,255,255),1)
     print(angle)
     cv.imshow("the actual frame", frame)
     cv.waitKey(0)
 
 if __name__ == '__main__':
-    test_find_ave_angle('image0.jpg')
-    test_find_ave_angle('image1.jpg')
-    test_find_ave_angle('image2.jpg')
-    test_find_ave_angle('image3.jpg')
+    folder_dir = "pics/"
+    badfloor = "imseries/"
 
+    for images in sorted(os.listdir(badfloor)):
+        test_find_ave_angle(badfloor + images)

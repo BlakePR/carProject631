@@ -58,9 +58,14 @@ def grid2midpoints(grid, scalex, scaley):
     midpoints = []
     for i in range(grid.shape[0]):  # rows
         jl = grid.shape[1] // 2 - 1
-        while jl >= 0 and grid[i, jl] == 1:
+        jr = jl
+        while jl >= 0 and grid[i, jl] == 1 and grid[i, jr] == 1:
             jl -= 1
-        jr = jl + 1
+            jr += 1
+        if grid[i, jl] != 1:
+            jr = jl + 1
+        else:
+            jl = jr - 1
         while jl >= 0 and grid[i, jl] == 0:
             jl -= 1
         while jr < grid.shape[1] and grid[i, jr] == 0:

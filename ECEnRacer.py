@@ -29,6 +29,7 @@ import cv2
 
 from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
 from pathplanner import find_ave_angle
+from image_processing import get_obstacle
 
 rs = RealSense("/dev/video2", RS_VGA)  # RS_VGA, RS_720P, or RS_1080P
 writer = None
@@ -36,38 +37,45 @@ writer = None
 # Use $ ls /dev/tty* to find the serial port connected to Arduino
 Car = Arduino("/dev/ttyUSB0", 115200)  # Linux
 # Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
-
-Car.zero(1570)  # Set car to go straight.  Change this for your car.
 Car.pid(1)  # Use PID control
 # You can use kd and kp commands to change KP and KD values.  Default values are good.
 # loop over frames from Realsense
+count = 0
 while True:
     (time, rgb, depth, accel, gyro) = rs.getData()
 
     # cv2.imshow("RGB", rgb)
     # cv2.imshow("Depth", depth)
 
+    Car.zero(1576)  # Set car to go straight.  Change this for your car.
+
     """
     Add your code to process rgb, depth, IMU data
     """
     crop = crop_down(rgb, 120)
     crop = crop_up(crop, 30)
-    grid = make_grid(crop, 10, 10, 0.33)
-    scalex = crop.shape[1] // 10
-    scaley = crop.shape[0] // 10
+    crop = get_obstacle(crop)
+    gridx, gridy = 15, 16
+    grid = make_grid(crop, gridx, gridy, 0.35)
+    scalex = crop.shape[1] // gridx
+    scaley = crop.shape[0] // gridy
     midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
     angle = find_ave_angle(midpoints)
     """
     Control the Car
     """
-    count = 0
+    count += 1
     Car.steer(angle)
     if count < 40:
-        Car.drive(1.6)
-        count += 1
+        Car.drive(1.8)
     else:
-        Car.drive(0.25)
-
+        Car.drive(1.3)
+    print(angle)
+    if count % 13 == 0:
+        cv2.imwrite(f"run2_{count}_crop.jpg", crop)
+        cv2.imwrite(f"run2_{count}.jpg", rgb)
+    if count > 160:
+        break
     """
    	IMPORTANT: Never go full speed. Use CarTest.py to selest the best speed for you.
     Car can switch between positve and negative speed (go reverse) without any problem.
