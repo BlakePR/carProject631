@@ -37,15 +37,15 @@ writer = None
 Car = Arduino("/dev/ttyUSB0", 115200)  # Linux
 # Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
 
-Car.zero(1500)  # Set car to go straight.  Change this for your car.
+Car.zero(1570)  # Set car to go straight.  Change this for your car.
 Car.pid(1)  # Use PID control
 # You can use kd and kp commands to change KP and KD values.  Default values are good.
 # loop over frames from Realsense
 while True:
     (time, rgb, depth, accel, gyro) = rs.getData()
 
-    cv2.imshow("RGB", rgb)
-    cv2.imshow("Depth", depth)
+    # cv2.imshow("RGB", rgb)
+    # cv2.imshow("Depth", depth)
 
     """
     Add your code to process rgb, depth, IMU data
@@ -66,14 +66,14 @@ while True:
         Car.drive(1.6)
         count += 1
     else:
-        Car.drive(0.5)
+        Car.drive(0.25)
 
     """
    	IMPORTANT: Never go full speed. Use CarTest.py to selest the best speed for you.
     Car can switch between positve and negative speed (go reverse) without any problem.
     """
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
+    # key = cv2.waitKey(1) & 0xFF
+    # if key == ord("q"):
+    #     break
 del rs
 del Car

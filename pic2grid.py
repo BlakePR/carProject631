@@ -17,7 +17,7 @@ def crop_down(image, crop_height):
 
 
 def crop_up(image, crop_height):
-    return image[:crop_height, :, :]
+    return image[:-crop_height, :, :]
 
 
 # cropped = crop_down(img, 120)
