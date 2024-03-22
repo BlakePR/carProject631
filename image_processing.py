@@ -4,6 +4,7 @@ import os
 
 folder_dir = "pics/"
 badfloor = "imseries/"
+kernal = (5,1)
 
 def get_wall_HS_mask(rgbimg):
     image_hsv = cv.cvtColor(rgbimg, cv.COLOR_BGR2HSV)
@@ -16,12 +17,12 @@ def get_wall_HS_mask(rgbimg):
     RGB_channel_1 = cv.extractChannel(rgbimg, 1)
     RGB_channel_0 = cv.extractChannel(rgbimg, 0)
 
-    cv.imshow("hue",hue)
-    cv.imshow("saturation",saturation)
-    cv.imshow("intensity",intensity)
-    cv.imshow("red",RGB_channel_2)
-    cv.imshow("green",RGB_channel_1)
-    cv.imshow("red",RGB_channel_0)
+    # cv.imshow("hue",hue)
+    # cv.imshow("saturation",saturation)
+    # cv.imshow("intensity",intensity)
+    # cv.imshow("red",RGB_channel_2)
+    # cv.imshow("green",RGB_channel_1)
+    # cv.imshow("red",RGB_channel_0)
 
     #Right wall (bright wall)
     # RGB_thresh_2 = cv.threshold(RGB_channel_2, 150, 255, cv.THRESH_BINARY)[1]
@@ -74,8 +75,8 @@ def get_wall_HS_mask(rgbimg):
     final_pic = cv.bitwise_and(final_pic, cv.threshold(saturation, 25, 255, cv.THRESH_BINARY)[1])
     final_pic = cv.bitwise_and(final_pic, cv.threshold(RGB_channel_0, 200, 255, cv.THRESH_BINARY_INV)[1])
 
-    final_pic = cv.erode(final_pic, None, iterations=5)
-    final_pic = cv.dilate(final_pic, None, iterations=8)
+    final_pic = cv.erode(final_pic, None, iterations=3)
+    final_pic = cv.dilate(final_pic, kernel=kernal, iterations=8)
 
     # cv.imshow("color_coordinate",color_coordinate)
     # cv.imshow("hsv_mask",hsv_mask)
@@ -88,9 +89,23 @@ def get_wall_HS_mask(rgbimg):
     return final_pic
 
 
+def get_brightest_reflections(bgrimg):
+    RGB_channel_2 = cv.extractChannel(bgrimg, 2)
+    RGB_channel_1 = cv.extractChannel(bgrimg, 1)
+    RGB_channel_0 = cv.extractChannel(bgrimg, 0)
+
+    RGB_thresh_2 = cv.threshold(RGB_channel_2, 240, 255, cv.THRESH_BINARY)[1]
+    RGB_thresh_1 = cv.threshold(RGB_channel_1, 240, 255, cv.THRESH_BINARY)[1]
+    RGB_thresh_0 = cv.threshold(RGB_channel_0, 240, 255, cv.THRESH_BINARY)[1]
+
+    color_coordinate = cv.bitwise_and(RGB_thresh_2, RGB_thresh_1)
+    color_coordinate = cv.bitwise_and(color_coordinate, RGB_thresh_0)
+    return color_coordinate
+
+
 def get_noodle_not_red(bgrimg):
     chanel2 = cv.extractChannel(bgrimg, 2)
-    thresh = cv.threshold(chanel2, 40, 255, cv.THRESH_BINARY_INV)[1]
+    thresh = cv.threshold(chanel2, 30, 255, cv.THRESH_BINARY_INV)[1]
     mask = cv.erode(thresh, None, iterations=1)
     mask = cv.dilate(mask, None, iterations=4)
     return mask
@@ -102,16 +117,38 @@ def get_obstacle(rgbimg):
     middle[:, middle.shape[1]//3:2*middle.shape[1]//3] = 255
     middle = cv.bitwise_not(middle)
     wall_mask = cv.bitwise_and(wall_mask, middle)
+    cv.imshow("wall_mask",wall_mask)
+
+    height, width = wall_mask.shape
+    for col in range(width):
+        column_data = wall_mask[:, col]
+        found1 = False
+        last_index=None
+        for val in range(len(column_data)):
+            if column_data[val] > 0:
+                found1 = True
+                last_index = val
+            elif found1:
+                break
+        if last_index is not None:
+            wall_mask[last_index:, col] = 0
+    cv.imshow("wall_mask_post", wall_mask)
     noodle_mask = get_noodle_not_red(rgbimg)
+    cv.imshow("noodle_mask",noodle_mask)
     obstacles = cv.bitwise_or(wall_mask, noodle_mask)
 
     return obstacles
 
 if __name__ == "__main__":
     for images in sorted(os.listdir(badfloor)):
+        print(images)
         image_RGB = cv.imread(badfloor + images)
+        reflections = get_brightest_reflections(image_RGB)
         obstacles = get_obstacle(image_RGB)
+
         cv.imshow("image_RGB",image_RGB)
+        cv.imshow("reflections",reflections)
         cv.imshow("obstacles",obstacles)
+
         cv.waitKey(0)
 
