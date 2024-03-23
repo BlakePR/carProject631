@@ -38,7 +38,7 @@ def get_wall_HS_mask(rgbimg):
     RGB_thresh_2_inv = cv.threshold(RGB_channel_2, 255, 255, cv.THRESH_BINARY_INV)[1]
     RGB_thresh_tot_2 = cv.bitwise_and(RGB_thresh_2, RGB_thresh_2_inv)
     RGB_thresh_1 = cv.threshold(RGB_channel_1, 50, 255, cv.THRESH_BINARY)[1]
-    RGB_thresh_1_inv = cv.threshold(RGB_channel_1, 130, 255, cv.THRESH_BINARY_INV)[1]
+    RGB_thresh_1_inv = cv.threshold(RGB_channel_1, 160, 255, cv.THRESH_BINARY_INV)[1]
     RGB_thresh_tot_1 = cv.bitwise_and(RGB_thresh_1, RGB_thresh_1_inv)
     color_coordinate = cv.bitwise_and(RGB_thresh_tot_2, RGB_thresh_tot_1)
 
@@ -105,20 +105,37 @@ def get_brightest_reflections(bgrimg):
 
 def get_noodle_not_red(bgrimg):
     chanel2 = cv.extractChannel(bgrimg, 2)
-    thresh = cv.threshold(chanel2, 30, 255, cv.THRESH_BINARY_INV)[1]
+    thresh = cv.threshold(chanel2, 25, 255, cv.THRESH_BINARY_INV)[1]
     mask = cv.erode(thresh, None, iterations=1)
     mask = cv.dilate(mask, None, iterations=4)
+    height, width = mask.shape
+    for col in range(width):
+        column_data = mask[:, col]
+        found1 = False
+        last_index = None
+        for val in range(len(column_data)):
+            if column_data[val] > 0:
+                found1 = True
+                if last_index is None:
+                    last_index = val
+            elif found1:
+                break
+        if last_index is not None:
+            mask[:last_index, col] = 255
+
     return mask
 
 
 def get_obstacle(rgbimg):
     wall_mask = get_wall_HS_mask(rgbimg)
-    middle = np.zeros_like(wall_mask)
-    middle[:, middle.shape[1]//3:2*middle.shape[1]//3] = 255
-    middle = cv.bitwise_not(middle)
-    wall_mask = cv.bitwise_and(wall_mask, middle)
+    # middle = np.zeros_like(wall_mask)
+    # middle[:, middle.shape[1]//3:2*middle.shape[1]//3] = 255
+    # middle = cv.bitwise_not(middle)
+    # wall_mask = cv.bitwise_and(wall_mask, middle)
     cv.imshow("wall_mask",wall_mask)
 
+    noodle_mask = get_noodle_not_red(rgbimg)
+    wall_mask = cv.bitwise_or(wall_mask, noodle_mask)
     height, width = wall_mask.shape
     for col in range(width):
         column_data = wall_mask[:, col]
@@ -131,13 +148,10 @@ def get_obstacle(rgbimg):
             elif found1:
                 break
         if last_index is not None:
-            wall_mask[last_index:, col] = 0
-    cv.imshow("wall_mask_post", wall_mask)
-    noodle_mask = get_noodle_not_red(rgbimg)
-    cv.imshow("noodle_mask",noodle_mask)
-    obstacles = cv.bitwise_or(wall_mask, noodle_mask)
+            wall_mask[last_index:, col] = 1
 
-    return obstacles
+    wall_mask = cv.bitwise_or(wall_mask, noodle_mask)
+    return wall_mask
 
 if __name__ == "__main__":
     for images in sorted(os.listdir(badfloor)):
@@ -147,7 +161,7 @@ if __name__ == "__main__":
         obstacles = get_obstacle(image_RGB)
 
         cv.imshow("image_RGB",image_RGB)
-        cv.imshow("reflections",reflections)
+        # cv.imshow("reflections",reflections)
         cv.imshow("obstacles",obstacles)
 
         cv.waitKey(0)

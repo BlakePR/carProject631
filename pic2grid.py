@@ -70,6 +70,7 @@ def grid2midpoints(grid, scalex, scaley):
             jl -= 1
         while jr < grid.shape[1] and grid[i, jr] == 0:
             jr += 1
+        jl+=1
         templ = float(jl)
         tempr = float(jr)
         y = i * scaley
