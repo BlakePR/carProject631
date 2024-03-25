@@ -26,10 +26,11 @@ from RealSense import *
 import numpy as np
 import imutils
 import cv2
+import pyximport; pyximport.install()
 
 from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
 from pathplanner import find_ave_angle
-from image_processing import get_obstacle
+import image_processing
 
 rs = RealSense("/dev/video2", RS_VGA)  # RS_VGA, RS_720P, or RS_1080P
 writer = None
@@ -47,14 +48,14 @@ while True:
     # cv2.imshow("RGB", rgb)
     # cv2.imshow("Depth", depth)
 
-    Car.zero(1576)  # Set car to go straight.  Change this for your car.
+    Car.zero(1562)  # Set car to go straight.  Change this for your car.
 
     """
     Add your code to process rgb, depth, IMU data
     """
     crop = crop_down(rgb, 120)
     crop = crop_up(crop, 30)
-    crop = get_obstacle(crop)
+    crop = image_processing.get_obstacle(crop)
     gridx, gridy = 15, 16
     grid = make_grid(crop, gridx, gridy, 0.35)
     scalex = crop.shape[1] // gridx
@@ -71,9 +72,9 @@ while True:
     else:
         Car.drive(1.3)
     print(angle)
-    if count % 13 == 0:
-        cv2.imwrite(f"run2_{count}_crop.jpg", crop)
-        cv2.imwrite(f"run2_{count}.jpg", rgb)
+    # if count % 13 == 0:
+        # cv2.imwrite(f"run2_{count}_crop.jpg", crop)
+        # cv2.imwrite(f"run2_{count}.jpg", rgb)
     if count > 160:
         break
     """

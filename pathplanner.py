@@ -6,7 +6,7 @@ import numpy as np
 
 def find_ave_angle(midpoints):
     angles = []
-    dist = 6
+    dist = 7
     weighting = 0
     for i in range(dist):
         weighting +=i+1
