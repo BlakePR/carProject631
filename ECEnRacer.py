@@ -29,7 +29,7 @@ import cv2
 
 from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
 from pathplanner import find_ave_angle
-from image_processing import get_obstacle
+from image_processing import get_obstacle, get_noodle_not_red, depth_straight_contoller, depth_to_offset
 
 
 rs = RealSense("/dev/video2", RS_VGA)  # RS_VGA, RS_720P, or RS_1080P
@@ -42,43 +42,52 @@ Car.pid(1)  # Use PID control
 # You can use kd and kp commands to change KP and KD values.  Default values are good.
 # loop over frames from Realsense
 count = 0
+integral_control = 0
 angle = 0
-
 while True:
     (time, rgb, depth, accel, gyro) = rs.getData()
+    
 
-    # cv2.imshow("RGB", rgb)
-    # cv2.imshow("Depth", depth)
-    Car.zero(1570)  # Set car to go straight.  Change this for your car.
-    Car.steer(angle)
+    
 
     """
     Add your code to process rgb, depth, IMU data
     """
     crop = crop_down(rgb, 120)
     crop = crop_up(crop, 30)
-    crop = cv2.resize(crop, (0, 0), fx=0.1, fy=0.3)
-    crop = get_obstacle(crop)
-    gridx, gridy = 20, 20
-    grid = make_grid(crop, gridx, gridy, 0.35)
-    scalex = crop.shape[1] // gridx
-    scaley = crop.shape[0] // gridy
-    midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
-    angle = min(find_ave_angle(midpoints), 10)
-    angle = max(angle, -10)
+    crop = cv.resize(crop, (0,0), fx=0.3, fy=0.5)
+
+    blue_obst = get_noodle_not_red(crop)
+    gridx, gridy = 10, 10
+    grid_state_machine = make_grid(crop, gridx, gridy, 0.35)
+
+    if np.count(grid_state_machine[7:,:]) > 0:
+        crop = get_obstacle(crop)
+        gridx, gridy = 10, 10
+        grid = make_grid(crop, gridx, gridy, 0.35)
+        scalex = crop.shape[1] // gridx
+        scaley = crop.shape[0] // gridy
+        midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
+        angle = find_ave_angle(midpoints)
+    
+    else:
+        depth_info = depth_to_offset(depth)
+        angle, integral_control = depth_straight_contoller(depth_info,integral_control)
+
     """
     Control the Car
     """
     count += 1
+    Car.zero(1565)  # Set car to go straight.  Change this for your car.
     Car.steer(angle)
     if count < 40:
         Car.drive(1.8)
     else:
         Car.drive(1.3)
     print(angle)
-    if count % 13 == 0:
-        cv2.imwrite(f"run2_{count}_crop.jpg", crop)
-        cv2.imwrite(f"run2_{count}.jpg", rgb)
+    # if count % 13 == 0:
+    #     cv2.imwrite(f"run2_{count}_crop.jpg", crop)
+    #     cv2.imwrite(f"run2_{count}.jpg", rgb)
     if count > 40:
         break
     """
