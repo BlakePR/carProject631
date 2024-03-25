@@ -5,7 +5,7 @@ from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
 
 # pyximport.install()
 # import image_processing
-import image_processing_old as image_processing
+import image_processing as image_processing
 
 import cv2 as cv
 import numpy as np
@@ -24,13 +24,13 @@ def test_find_ave_angle(image):
     # cv.imshow("grid", grid*250)
     midpoints = grid2midpoints(grid, cropped.shape[1] // 20, cropped.shape[0] // 10)
     angle = find_ave_angle(midpoints)
-    # for midpoint in midpoints:
-    #     cv.circle(
-    #         frame, (int(midpoint[1]), int(midpoint[0]) + 120), 5, (255, 255, 255), 1
-    #     )
-    # print(angle)
-    # cv.imshow("the actual frame", frame)
-    # cv.waitKey(0)
+    for midpoint in midpoints:
+        cv.circle(
+            frame, (int(midpoint[1]), int(midpoint[0]) + 120), 5, (255, 255, 255), 1
+        )
+    print(angle)
+    cv.imshow("the actual frame", frame)
+    cv.waitKey(0)
 
 
 if __name__ == "__main__":
