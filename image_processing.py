@@ -207,6 +207,8 @@ def depth_to_offset(depth):
     depth = cv.erode(depth, None, iterations=8)
     depth = cv.morphologyEx(depth, cv.MORPH_GRADIENT, None)
     rect = cv.boundingRect(depth)
+    if rect is None:
+        return 0
     center = (rect[0] + rect[2] // 2, rect[1] + rect[3] // 2)
     # print(center)
     # cv.circle(depth, center, 5, (255, 255, 255), 1)
@@ -216,7 +218,7 @@ def depth_to_offset(depth):
     return x_diff
 
 
-def depth_straight_contoller(depth, integral):
+def depth_straight_contoller(depth, integral, kp=0.33, ki=0.02):
     diff = depth_to_offset(depth)
     kp = 0.33
     ki = 0.02
