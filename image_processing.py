@@ -202,6 +202,26 @@ def get_obstacle(rgbimg):
     return total_obstacles
 
 
+def depth_to_offset(depth):
+    depth = cv.threshold(depth, 40, 255, cv.THRESH_BINARY_INV)[1]
+    depth = cv.erode(depth, None, iterations=8)
+    depth = cv.morphologyEx(depth, cv.MORPH_GRADIENT, None)
+    rect = cv.boundingRect(depth)
+    center = (rect[0] + rect[2] // 2, rect[1] + rect[3] // 2)
+    # print(center)
+    # cv.circle(depth, center, 5, (255, 255, 255), 1)
+    # cv.rectangle(depth, rect, (255, 255, 255), 1)
+    imcenter = (depth.shape[1] // 2, depth.shape[0] // 2)
+    x_diff = center[0] - imcenter[0]
+    return x_diff
+
+
+def depth_straight_contoller(depth):
+    diff = depth_to_offset(depth)
+    pval = 0.33
+    return diff * pval
+
+
 if __name__ == "__main__":
     for images in sorted(os.listdir(badfloor)):
         print(images)
@@ -214,3 +234,11 @@ if __name__ == "__main__":
         cv.imshow("obstacles", obstacles)
 
         cv.waitKey(0)
+    # for img in sorted(os.listdir("corner3")):
+    #     if img.startswith("depth"):
+    #         depth = cv.imread("corner3/" + img, cv.IMREAD_ANYDEPTH)
+    #         cv.imshow("depth", depth)
+    #         # cv.waitKey(0)
+    #         depth2 = depth_to_angle(depth)
+    #         cv.imshow("depth2", depth2)
+    #         cv.waitKey(0)

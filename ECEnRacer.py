@@ -42,27 +42,30 @@ Car.pid(1)  # Use PID control
 # You can use kd and kp commands to change KP and KD values.  Default values are good.
 # loop over frames from Realsense
 count = 0
+angle = 0
+
 while True:
     (time, rgb, depth, accel, gyro) = rs.getData()
 
     # cv2.imshow("RGB", rgb)
     # cv2.imshow("Depth", depth)
-
-    Car.zero(1576)  # Set car to go straight.  Change this for your car.
+    Car.zero(1570)  # Set car to go straight.  Change this for your car.
+    Car.steer(angle)
 
     """
     Add your code to process rgb, depth, IMU data
     """
     crop = crop_down(rgb, 120)
     crop = crop_up(crop, 30)
-    crop = cv.resize(crop, (0,0), fx=0.3, fy=0.5)
+    crop = cv2.resize(crop, (0, 0), fx=0.1, fy=0.3)
     crop = get_obstacle(crop)
-    gridx, gridy = 10, 10
+    gridx, gridy = 20, 20
     grid = make_grid(crop, gridx, gridy, 0.35)
     scalex = crop.shape[1] // gridx
     scaley = crop.shape[0] // gridy
     midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
-    angle = find_ave_angle(midpoints)
+    angle = min(find_ave_angle(midpoints), 10)
+    angle = max(angle, -10)
     """
     Control the Car
     """
