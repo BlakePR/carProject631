@@ -203,45 +203,53 @@ def get_obstacle(rgbimg):
 
 
 def depth_to_offset(depth):
-    depth = cv.threshold(depth, 40, 255, cv.THRESH_BINARY_INV)[1]
-    depth = cv.erode(depth, None, iterations=8)
+    depth = cv.threshold(depth, 60, 255, cv.THRESH_BINARY_INV)[1]
+    depth = cv.erode(depth, None, iterations=2)
+    depth = cv.dilate(depth, None, iterations=4)
     depth = cv.morphologyEx(depth, cv.MORPH_GRADIENT, None)
-    rect = cv.boundingRect(depth)
-    if rect is None:
-        return 0
-    center = (rect[0] + rect[2] // 2, rect[1] + rect[3] // 2)
+    depth = np.uint8(depth)
+    cnts = cv.findContours(depth, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    print("cnts: ", len(cnts))
+    if cnts is None or len(cnts)== 0:
+        return 0.0
+    # if cv.contourArea(cnts[0]) < 30:
+    #     return 0.0
+    rect = cv.boundingRect(cnts[0])
+    
+    center = rect[0] + rect[2] // 2
+    print("center: ", center)
     # print(center)
     # cv.circle(depth, center, 5, (255, 255, 255), 1)
     # cv.rectangle(depth, rect, (255, 255, 255), 1)
-    imcenter = (depth.shape[1] // 2, depth.shape[0] // 2)
-    x_diff = center[0] - imcenter[0]
+    imcenter = depth.shape[1] // 2
+    x_diff = center - imcenter
+    print("xdiff ",x_diff)
     return x_diff
 
 
 def depth_straight_contoller(depth, integral, kp=0.33, ki=0.02):
     diff = depth_to_offset(depth)
-    kp = 0.33
-    ki = 0.02
+    # print(diff * kp + integral * ki)
     return diff * kp + integral * ki, diff + integral
 
 
 if __name__ == "__main__":
-    for images in sorted(os.listdir(badfloor)):
-        print(images)
-        image_RGB = cv.imread(badfloor + images)
-        reflections = get_brightest_reflections(image_RGB)
-        obstacles = get_obstacle(image_RGB)
+    # for images in sorted(os.listdir(badfloor)):
+    #     print(images)
+    #     image_RGB = cv.imread(badfloor + images)
+    #     reflections = get_brightest_reflections(image_RGB)
+    #     obstacles = get_obstacle(image_RGB)
 
-        cv.imshow("image_RGB", image_RGB)
-        # cv.imshow("reflections",reflections)
-        cv.imshow("obstacles", obstacles)
+    #     cv.imshow("image_RGB", image_RGB)
+    #     # cv.imshow("reflections",reflections)
+    #     cv.imshow("obstacles", obstacles)
 
-        cv.waitKey(0)
-    # for img in sorted(os.listdir("corner3")):
-    #     if img.startswith("depth"):
-    #         depth = cv.imread("corner3/" + img, cv.IMREAD_ANYDEPTH)
-    #         cv.imshow("depth", depth)
-    #         # cv.waitKey(0)
-    #         depth2 = depth_to_angle(depth)
-    #         cv.imshow("depth2", depth2)
-    #         cv.waitKey(0)
+    #     cv.waitKey(0)
+    for img in sorted(os.listdir("./")):
+        if img.startswith("depth"):
+            depth = cv.imread("./" + img, cv.IMREAD_ANYDEPTH)
+            # cv.imshow("depth", depth)
+            # cv.waitKey(0)
+            depth2 = depth_to_offset(depth)
+            print(depth2)
+            # cv.waitKey(0)
