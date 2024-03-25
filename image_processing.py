@@ -71,12 +71,8 @@ def get_wall_HS_mask(rgbimg):
     final_pic = and_pic
     final_pic = cv.bitwise_and(final_pic, hue_mask)
     final_pic = cv.bitwise_and(final_pic, int_mask)
-    final_pic = cv.bitwise_and(
-        final_pic, cv.threshold(saturation, 25, 255, cv.THRESH_BINARY)[1]
-    )
-    final_pic = cv.bitwise_and(
-        final_pic, cv.threshold(RGB_channel_0, 200, 255, cv.THRESH_BINARY_INV)[1]
-    )
+    final_pic = cv.bitwise_and(final_pic, cv.threshold(saturation, 25, 255, cv.THRESH_BINARY)[1])
+    final_pic = cv.bitwise_and(final_pic, cv.threshold(RGB_channel_0, 200, 255, cv.THRESH_BINARY_INV)[1])
 
     final_pic = cv.erode(final_pic, None, iterations=3)
     final_pic = cv.dilate(final_pic, kernel=kernal, iterations=10)
@@ -185,16 +181,16 @@ def get_obstacle(rgbimg):
 
     wall_mask = cv.bitwise_or(wall_mask, noodle_mask)
     sat_diff = saturation_diff(rgbimg)
-    cv.imshow("saturation_diff", sat_diff)
-    cv.imshow("wall_mask", wall_mask)
+    # cv.imshow("saturation_diff",sat_diff)
+    # cv.imshow("wall_mask", wall_mask)
 
-    top_100_image1 = sat_diff[:100, :]
-    top_100_image2 = wall_mask[:100, :]
-    top_image = cv.bitwise_or(top_100_image1, top_100_image2)
+    top_100_image1 = sat_diff[:50, :]
+    top_100_image2 = wall_mask[:50, :]
+    top_image = cv.bitwise_or(top_100_image1,top_100_image2)
 
-    rest_image1 = sat_diff[100:, :]
-    rest_image2 = wall_mask[100:, :]
-    bottom_image = cv.bitwise_and(rest_image1, rest_image2)
+    rest_image1 = sat_diff[50:, :]
+    rest_image2 = wall_mask[50:, :]
+    bottom_image = cv.bitwise_and(rest_image1,rest_image2)
 
     total_obstacles = cv.vconcat([top_image, bottom_image])
     total_obstacles = cv.bitwise_or(total_obstacles, noodle_mask)
@@ -204,8 +200,6 @@ def get_obstacle(rgbimg):
 
 if __name__ == "__main__":
     for images in sorted(os.listdir(badfloor)):
-        if not images.endswith(".jpg"):
-            continue
         print(images)
         image_RGB = cv.imread(badfloor + images)
         reflections = get_brightest_reflections(image_RGB)
