@@ -216,10 +216,11 @@ def depth_to_offset(depth):
     return x_diff
 
 
-def depth_straight_contoller(depth):
+def depth_straight_contoller(depth, integral):
     diff = depth_to_offset(depth)
-    pval = 0.33
-    return diff * pval
+    kp = 0.33
+    ki = 0.02
+    return diff * kp + integral * ki, diff + integral
 
 
 if __name__ == "__main__":
