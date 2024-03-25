@@ -12,6 +12,7 @@ def test_find_ave_angle(image):
 
     cropped = crop_down(frame, 120)
     cropped = crop_up(cropped, 30)
+    cropped = cv.resize(cropped, (0,0), fx=0.25, fy=0.5)
     obstacles = image_processing.get_obstacle(cropped)
     cv.imshow("obstacles", obstacles)
     grid = make_grid(obstacles, 10, 20, 0.2)
@@ -19,9 +20,10 @@ def test_find_ave_angle(image):
     midpoints = grid2midpoints(grid, cropped.shape[1] // 20, cropped.shape[0] // 10)
     angle = find_ave_angle(midpoints)
     for midpoint in midpoints:
-        cv.circle(frame,(int(midpoint[1]), int(midpoint[0]) + 120),5, (255,255,255),1)
+        cv.circle(frame,(int(midpoint[1]*4), (int(midpoint[0]*2+ 120))),5, (255,255,255),1)
     print(angle)
     cv.imshow("the actual frame", frame)
+    cv.imshow("cropped",cropped)
     cv.waitKey(0)
 
 if __name__ == '__main__':
