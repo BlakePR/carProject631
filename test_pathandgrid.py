@@ -1,101 +1,46 @@
-# python3 ECEnRacer.py
-""" 
-This program is for ECEN-631 BYU Race
-*************** RealSense Package ***************
-From the Realsense camera:
-	RGB Data
-	Depth Data
-	Gyroscope Data
-	Accelerometer Data
-*************** Arduino Package ****************
-	Steer(int degree) : -30 (left) to +30 (right) degrees
-	Drive(float speed) : -3.0 to 3.0 meters/second
-	Zero(int PWM) : Sets front wheels going straight around 1500
-	Encoder() : Returns current encoder count.  Reset to zero when stop
-	Pid(int flag) : 0 to disable PID control, 1 to enable PID control
-	KP(float p) : Proporation control 0 ~ 1.0 : how fast to reach the desired speed.
-	KD(float d) : How smoothly to reach the desired speed.
-
-    EXTREMELY IMPORTANT: Read the user manual carefully before operate the car
-**************************************
-"""
-
-# import the necessary packages
-from Arduino import Arduino
-from RealSense import *
-import numpy as np
-import imutils
-import cv2
-
-from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
 from pathplanner import find_ave_angle
-from image_processing import get_obstacle, get_noodle_not_red, depth_straight_contoller, depth_to_offset
+from pic2grid import crop_down, crop_up, make_grid, grid2midpoints
+
+# import pyximport
+
+# pyximport.install()
+# import image_processing
+import image_processing as image_processing
+
+import cv2 as cv
+import numpy as np
+import os
 
 
-rs = RealSense("/dev/video2", RS_VGA)  # RS_VGA, RS_720P, or RS_1080P
-writer = None
+def test_find_ave_angle(image):
+    frame = cv.imread(image)
 
-# Use $ ls /dev/tty* to find the serial port connected to Arduino
-Car = Arduino("/dev/ttyUSB0", 115200)  # Linux
-# Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
-Car.pid(1)  # Use PID control
-# You can use kd and kp commands to change KP and KD values.  Default values are good.
-# loop over frames from Realsense
-count = 0
-integral_control = 0
-angle = 0
-while True:
-    (time, rgb, depth, accel, gyro) = rs.getData()
-    
-
-    
-
-    """
-    Add your code to process rgb, depth, IMU data
-    """
-    crop = crop_down(rgb, 120)
-    crop = crop_up(crop, 30)
-    crop = cv.resize(crop, (0,0), fx=0.3, fy=0.5)
-
-    blue_obst = get_noodle_not_red(crop)
-    gridx, gridy = 10, 10
-    grid_state_machine = make_grid(crop, gridx, gridy, 0.35)
-
-    if np.count(grid_state_machine[7:,:]) > 0:
-        crop = get_obstacle(crop)
-        gridx, gridy = 10, 10
-        grid = make_grid(crop, gridx, gridy, 0.35)
-        scalex = crop.shape[1] // gridx
-        scaley = crop.shape[0] // gridy
-        midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
-        angle = find_ave_angle(midpoints)
-    
-    else:
-        depth_info = depth_to_offset(depth)
-        angle, integral_control = depth_straight_contoller(depth_info,integral_control)
-
-    """
-    Control the Car
-    """
-    count += 1
-    Car.zero(1565)  # Set car to go straight.  Change this for your car.
-    Car.steer(angle)
-    if count < 40:
-        Car.drive(1.8)
-    else:
-        Car.drive(1.3)
+    cropped = crop_down(frame, 120)
+    cropped = crop_up(cropped, 30)
+    cropped = cv.resize(cropped, (0, 0), fx=0.3, fy=0.5)
+    obstacles = image_processing.get_obstacle(cropped)
+    # cv.imshow("obstacles", obstacles)
+    grid = make_grid(obstacles, 10, 20, 0.2)
+    # cv.imshow("grid", grid*250)
+    midpoints = grid2midpoints(grid, cropped.shape[1] // 20, cropped.shape[0] // 10)
+    angle = find_ave_angle(midpoints)
+    for midpoint in midpoints:
+        cv.circle(
+            frame, (int(midpoint[1]), int(midpoint[0]) + 120), 5, (255, 255, 255), 1
+        )
     print(angle)
-    # if count % 13 == 0:
-    #     cv2.imwrite(f"run2_{count}_crop.jpg", crop)
-    #     cv2.imwrite(f"run2_{count}.jpg", rgb)
-    if count > 40:
-        break
-    """
-   	IMPORTANT: Never go full speed. Use CarTest.py to selest the best speed for you.
-    Car can switch between positve and negative speed (go reverse) without any problem.
-    """
-    # key = cv2.waitKey(1) & 0xFF
-    # if key == ord("q"):
-    #     break
-del rs
-del Car
+    cv.imshow("the actual frame", frame)
+    cv.waitKey(0)
+
+
+if __name__ == "__main__":
+    folder_dir = "pics/"
+    badfloor = "imseries/"
+    times = []
+    import time
+
+    for images in sorted(os.listdir(badfloor)):
+        start = time.time()
+        test_find_ave_angle(badfloor + images)
+        times.append(time.time() - start)
+    print("max time: ", np.mean(times))
