@@ -217,7 +217,10 @@ def depth_to_offset(depth):
     # rect = cv.boundingRect(cnts[0])
 
     # center = rect[0] + rect[2] // 2
-    center = np.mean(np.nonzero(depth)[1])
+    idx = np.nonzero(depth)[1]
+    if idx.size == 0:
+        return 0.0
+    center = np.mean(idx)
     print("center: ", center)
     # print(center)
     # cv.circle(depth, center, 5, (255, 255, 255), 1)
@@ -246,9 +249,10 @@ if __name__ == "__main__":
     #     cv.imshow("obstacles", obstacles)
 
     #     cv.waitKey(0)
-    for img in sorted(os.listdir("./")):
+    for img in sorted(os.listdir("depthImages/")):
         if img.startswith("depth"):
-            depth = cv.imread("./" + img, cv.IMREAD_ANYDEPTH)
+            # print("depthImages/" + img)
+            depth = cv.imread("depthImages/" + img, cv.IMREAD_ANYDEPTH)
             # cv.imshow("depth", depth)
             # cv.waitKey(0)
             depth2 = depth_to_offset(depth)
