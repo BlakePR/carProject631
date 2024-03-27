@@ -48,53 +48,83 @@ Car.pid(1)  # Use PID control
 # loop over frames from Realsense
 count = 0
 integral_control = 0.0
+integral_control_blue = 0.0
 angle = 0.0
+nood_angle = -10
 while True:
     (time, rgb, depth, accel, gyro) = rs.getData()
 
-    """
-    Add your code to process rgb, depth, IMU data
-    """
+    if count % 2 == 1:
 
-    crop = crop_down(rgb, 120)
-    crop = crop_up(crop, 30)
-    crop = cv2.resize(crop, (0, 0), fx=0.3, fy=0.5)
+        """
+        Add your code to process rgb, depth, IMU data40
+        """
 
-    blue_obst = get_noodle_not_red(crop)
-    gridx, gridy = 10, 12
-    grid_state_machine = make_grid(blue_obst, gridx, gridy, 0.35)
+        crop = crop_down(rgb, 120)
+        crop = crop_up(crop, 30)
+        crop = cv2.resize(crop, (0, 0), fx=0.3, fy=0.5)
 
-    if np.count_nonzero(grid_state_machine[8:, :]) > 0:
-        print("AH! NOODS!")
-        crop = get_obstacle(crop)
-        gridx, gridy = 10, 10
-        grid = make_grid(crop, gridx, gridy, 0.35)
-        scalex = crop.shape[1] // gridx
-        scaley = crop.shape[0] // gridy
-        midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
-        angle = find_ave_angle(midpoints)
+        blue_obst = get_noodle_not_red(crop)
+        gridx, gridy = 10, 12
+        grid_state_machine = make_grid(blue_obst, gridx, gridy, 0.35)
+        # cv2.imwrite(f"act{count}.jpg",crop)
+        # cv2.imwrite(f"grid{count}.jpg",grid_state_machine*250)
+        # cv2.imwrite(f"blueobs{count}.jpg",blue_obst)
+
+        if np.count_nonzero(grid_state_machine[4:, :]) > 0:
+            print("AH! NOODS!")
+            # crop = get_obstacle(crop)
+            # gridx, gridy = 10, 10
+            # grid = make_grid(crop, gridx, gridy, 0.35)
+            # scalex = crop.shape[1] // gridx
+            # scaley = crop.shape[0] // gridy
+            # midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
+            # angle = find_ave_angle(midpoints)
+
+            angle = nood_angle
+            nood_angle += 1
+            integral_control = 0.0
+            integral_control_blue = 0.0
+
+        elif np.count_nonzero(grid_state_machine[1:6, :]) > 0:
+            print("Noods close...")
+
+            # crop = get_obstacle(crop)
+            # gridx, gridy = 10, 10
+            # grid = make_grid(crop, gridx, gridy, 0.35)
+            # scalex = crop.shape[1] // gridx
+            # scaley = crop.shape[0] // gridy
+            # midpoints = grid2midpoints(grid, scalex=scalex, scaley=scaley)
+            # angle = find_ave_angle(midpoints)
+
+            angle, integral_control_blue = \
+                depth_straight_contoller(cv2.threshold(blue_obst, 200, 255, cv2.THRESH_BINARY_INV)[1],integral_control_blue,kp=0.05, ki=0.0002)
+        else:
+            nood_angle = -10
+            depth = cv2.resize(depth, (0,0),fx=.3,fy=.3)
+            # print("integrator: ", integral_control)
+            angle, integral_control = \
+                depth_straight_contoller(depth, integral_control,kp=0.04, ki=0.0002)
+
+        """
+        Control the Car
+        """
+        
+        Car.zero(1570)  # Set car to go straight.  Change this for your car.
+        Car.steer(angle)
+        # if count < 40:
+        Car.drive(3)
+        # else:>
+            # Car.drive(2.6)
+        # print("Count: ", count, "Angle", end =": ")
+        # print(angle)
+        # if count % 3 == 0 or True:
+        #     cv2.imwrite(f"depth_{count}.jpg", depth)
     else:
-        depth = cv2.resize(depth, (0,0),fx=.5,fy=.5)
-        # print("integrator: ", integral_control)
-        angle, integral_control = \
-            depth_straight_contoller(depth, integral_control,kp=0.06, ki=0.0001)
-
-    """
-    Control the Car
-    """
+        pass
     count += 1
-    Car.zero(1570)  # Set car to go straight.  Change this for your car.
-    Car.steer(angle)
-    if count < 40:
-        Car.drive(1.8)
-    else:
-        Car.drive(1.3)
-    print("Count: ", count, "Angle", end =": ")
-    print(angle)
-    if count % 3 == 0 or True:
-        cv2.imwrite(f"depth_{count}.jpg", depth)
-    if count > 40:
-        break
+    # if count > 120:
+        # break
     """
    	IMPORTANT: Never go full speed. Use CarTest.py to selest the best speed for you.
     Car can switch between positve and negative speed (go reverse) without any problem.
