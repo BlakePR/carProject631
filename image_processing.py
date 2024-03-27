@@ -206,24 +206,25 @@ def depth_to_offset(depth):
     depth = cv.threshold(depth, 60, 255, cv.THRESH_BINARY_INV)[1]
     depth = cv.erode(depth, None, iterations=2)
     depth = cv.dilate(depth, None, iterations=4)
-    depth = cv.morphologyEx(depth, cv.MORPH_GRADIENT, None)
-    depth = np.uint8(depth)
-    cnts = cv.findContours(depth, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    print("cnts: ", len(cnts))
-    if cnts is None or len(cnts)== 0:
-        return 0.0
-    # if cv.contourArea(cnts[0]) < 30:
+    # depth = cv.morphologyEx(depth, cv.MORPH_GRADIENT, None)
+    # depth = np.uint8(depth)
+    # cnts = cv.findContours(depth, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    # print("cnts: ", len(cnts))
+    # if cnts is None or len(cnts)== 0:
     #     return 0.0
-    rect = cv.boundingRect(cnts[0])
-    
-    center = rect[0] + rect[2] // 2
+    # # if cv.contourArea(cnts[0]) < 30:
+    # #     return 0.0
+    # rect = cv.boundingRect(cnts[0])
+
+    # center = rect[0] + rect[2] // 2
+    center = np.mean(np.nonzero(depth)[1])
     print("center: ", center)
     # print(center)
     # cv.circle(depth, center, 5, (255, 255, 255), 1)
     # cv.rectangle(depth, rect, (255, 255, 255), 1)
     imcenter = depth.shape[1] // 2
     x_diff = center - imcenter
-    print("xdiff ",x_diff)
+    print("xdiff ", x_diff)
     return x_diff
 
 
