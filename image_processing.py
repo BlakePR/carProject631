@@ -108,9 +108,12 @@ def get_brightest_reflections(bgrimg):
 
 def get_noodle_not_red(bgrimg):
     chanel2 = cv.extractChannel(bgrimg, 2)
+    chanel0 = cv.extractChannel(bgrimg, 0)
     thresh = cv.threshold(chanel2, 25, 255, cv.THRESH_BINARY_INV)[1]
+    thresh_blue = cv.threshold(chanel0, 60, 255, cv.THRESH_BINARY)[1]
     mask = cv.erode(thresh, None, iterations=1)
     mask = cv.dilate(mask, None, iterations=4)
+    mask = cv.bitwise_and(mask,thresh_blue)
     height, width = mask.shape
     for col in range(width):
         column_data = mask[:, col]
@@ -221,13 +224,13 @@ def depth_to_offset(depth):
     if idx.size == 0:
         return 0.0
     center = np.mean(idx)
-    print("center: ", center)
+    # print("center: ", center)
     # print(center)
     # cv.circle(depth, center, 5, (255, 255, 255), 1)
     # cv.rectangle(depth, rect, (255, 255, 255), 1)
     imcenter = depth.shape[1] // 2
     x_diff = center - imcenter
-    print("xdiff ", x_diff)
+    # print("xdiff ", x_diff)
     return x_diff
 
 
@@ -238,23 +241,23 @@ def depth_straight_contoller(depth, integral, kp=0.33, ki=0.02):
 
 
 if __name__ == "__main__":
-    # for images in sorted(os.listdir(badfloor)):
-    #     print(images)
-    #     image_RGB = cv.imread(badfloor + images)
-    #     reflections = get_brightest_reflections(image_RGB)
-    #     obstacles = get_obstacle(image_RGB)
+    for images in sorted(os.listdir(badfloor)):
+        print(images)
+        image_RGB = cv.imread(badfloor + images)
+        reflections = get_brightest_reflections(image_RGB)
+        obstacles = get_obstacle(image_RGB)
 
-    #     cv.imshow("image_RGB", image_RGB)
-    #     # cv.imshow("reflections",reflections)
-    #     cv.imshow("obstacles", obstacles)
+        cv.imshow("image_RGB", image_RGB)
+        # cv.imshow("reflections",reflections)
+        cv.imshow("obstacles", obstacles)
 
-    #     cv.waitKey(0)
-    for img in sorted(os.listdir("depthImages/")):
-        if img.startswith("depth"):
-            # print("depthImages/" + img)
-            depth = cv.imread("depthImages/" + img, cv.IMREAD_ANYDEPTH)
-            # cv.imshow("depth", depth)
-            # cv.waitKey(0)
-            depth2 = depth_to_offset(depth)
-            print(depth2)
-            # cv.waitKey(0)
+        cv.waitKey(0)
+    # for img in sorted(os.listdir("depthImages/")):
+    #     if img.startswith("depth"):
+    #         # print("depthImages/" + img)
+    #         depth = cv.imread("depthImages/" + img, cv.IMREAD_ANYDEPTH)
+    #         # cv.imshow("depth", depth)
+    #         # cv.waitKey(0)
+    #         depth2 = depth_to_offset(depth)
+    #         print(depth2)
+    #         # cv.waitKey(0)
